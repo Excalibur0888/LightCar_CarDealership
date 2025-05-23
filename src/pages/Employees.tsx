@@ -1,13 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Chip, Avatar } from '@mui/material';
+import { Box, Typography, Chip, Avatar, TextField } from '@mui/material';
 import PageHeader from '../components/PageHeader';
 import DataTable, { Column } from '../components/DataTable';
+import FormModal from '../components/FormModal';
 import apiService from '../services/apiConfig';
 import { Employee } from '../types/types';
 
 const Employees: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    id_сотрудника: '',
+    фио_сотрудника: '',
+    должность: '',
+    контактный_телефон: '',
+    email_сотрудника: ''
+  });
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -25,8 +35,47 @@ const Employees: React.FC = () => {
   }, []);
 
   const handleAddEmployee = () => {
-    // In a real application, this would navigate to a form to add a new employee
-    console.log('Add new employee clicked');
+    // Generate a unique ID for the new employee
+    const newId = `EMP${Date.now().toString().slice(-8)}`;
+    setFormData({
+      ...formData,
+      id_сотрудника: newId
+    });
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setFormData({
+      id_сотрудника: '',
+      фио_сотрудника: '',
+      должность: '',
+      контактный_телефон: '',
+      email_сотрудника: ''
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const newEmployee = await apiService.createEmployee(formData);
+      setEmployees([...employees, newEmployee]);
+      handleCloseModal();
+    } catch (error) {
+      console.error('Error creating employee:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleViewEmployee = (employee: Employee) => {
@@ -98,6 +147,55 @@ const Employees: React.FC = () => {
         onEdit={handleEditEmployee}
         onDelete={handleDeleteEmployee}
       />
+
+      <FormModal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmit}
+        title="Добавить сотрудника"
+        isLoading={isSubmitting}
+      >
+        <TextField
+          margin="normal"
+          required
+          fullWidth
+          label="ФИО"
+          name="фио_сотрудника"
+          value={formData.фио_сотрудника}
+          onChange={handleInputChange}
+        />
+
+        <TextField
+          margin="normal"
+          required
+          fullWidth
+          label="Должность"
+          name="должность"
+          value={formData.должность}
+          onChange={handleInputChange}
+        />
+
+        <TextField
+          margin="normal"
+          required
+          fullWidth
+          label="Контактный телефон"
+          name="контактный_телефон"
+          value={formData.контактный_телефон}
+          onChange={handleInputChange}
+        />
+
+        <TextField
+          margin="normal"
+          required
+          fullWidth
+          label="Email"
+          name="email_сотрудника"
+          type="email"
+          value={formData.email_сотрудника}
+          onChange={handleInputChange}
+        />
+      </FormModal>
     </Box>
   );
 };

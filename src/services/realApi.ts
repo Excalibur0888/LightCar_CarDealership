@@ -130,6 +130,11 @@ class RealApiService {
     return response.data;
   }
 
+  createCustomer = async (customer: Customer): Promise<Customer> => {
+    const response = await axios.post(`${API_BASE_URL}/customers`, customer);
+    return response.data;
+  }
+
   getCustomerSales = async (id: string): Promise<SaleWithDetails[]> => {
     const response = await axios.get(`${API_BASE_URL}/customers/${id}/sales`);
     return response.data;
@@ -148,6 +153,11 @@ class RealApiService {
 
   getEmployeeById = async (id: string): Promise<Employee> => {
     const response = await axios.get(`${API_BASE_URL}/employees/${id}`);
+    return response.data;
+  }
+
+  createEmployee = async (employee: Employee): Promise<Employee> => {
+    const response = await axios.post(`${API_BASE_URL}/employees`, employee);
     return response.data;
   }
 
